@@ -1,12 +1,13 @@
 import copy
 import random
 
+from noise import Noise, NoNoise
 from population import Population
 from objectives import Function
 
 
 class DifferentialEvolution(object):
-    def __init__(self, num_iterations=10, CR=0.4, F=0.48, dim=2, population_size=10, print_status=False, func=None):
+    def __init__(self, num_iterations=10, CR=0.4, F=0.48, dim=2, population_size=10, print_status=False, func=None, noise=None):
         random.seed()
         self.print_status = print_status
         self.num_iterations = num_iterations
@@ -15,6 +16,7 @@ class DifferentialEvolution(object):
         self.F = F
         self.population_size = population_size
         self.func = Function(func=func)
+        self.noise = noise if isinstance(noise, Noise) else NoNoise()
         self.population = Population(dim=dim, num_points=self.population_size, objective=self.func)
 
     def iterate(self):
@@ -33,7 +35,8 @@ class DifferentialEvolution(object):
                 if ri < self.CR or iy == R:
                     y.coords[iy] = a.coords[iy] + self.F * (b.coords[iy] - c.coords[iy])
 
-            y.evaluate_point()
+            noise_value = self.noise.evaluate(y.coords)
+            y.evaluate_point(noise_value)
             if y.z < x.z:
                 self.population.points[ix] = y
         self.iteration += 1

@@ -1,13 +1,17 @@
 from algorithm import DifferentialEvolution
 import datetime
 
+from noise import WhiteNoise
+
 if __name__ == '__main__':
     number_of_runs = 5
     val = 0
+    noise = WhiteNoise(10.0)
 
     for i in range(number_of_runs):
         start = datetime.datetime.now()
         de = DifferentialEvolution(num_iterations=50, dim=12, CR=0.4, F=0.48, population_size=75, print_status=False, func='rosenbrock')
+        de.noise = noise
         val += de.simulate()
         print("\nTime taken:", datetime.datetime.now() - start)
     print('-'*80)

@@ -15,6 +15,6 @@ class Point:
         self.coords = np.random.uniform(self.range_lower_limit, self.range_upper_limit, (self.dim,))
         self.evaluate_point()
 
-    def evaluate_point(self):
+    def evaluate_point(self, noise_value=0.0):
         # self.z = evaluate(self.coords)
-        self.z = self.objective.evaluate(self.coords)
+        self.z = self.objective.evaluate(self.coords) + noise_value
