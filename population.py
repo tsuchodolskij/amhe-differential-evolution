@@ -18,6 +18,14 @@ class Population:
                 new_point.generate_random_point()
                 self.points.append(new_point)
 
+    def get_best_point(self):
+        best = sorted(self.points, key=lambda x: x.z)[0]
+        return best
+
+    def get_worst_point(self):
+        worst = sorted(self.points, key=lambda x: x.z, reverse=True)[0]
+        return worst
+
     def get_average_objective(self):
         avg = 0.0
 
