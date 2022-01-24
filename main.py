@@ -3,6 +3,7 @@ import os
 import shutil
 
 from algorithm import DifferentialEvolution
+from noise import GaussianNoise
 
 
 def clear_out_dir():
@@ -22,10 +23,13 @@ if __name__ == '__main__':
     val = 0
     clear_out_dir()
 
+    noise = GaussianNoise(amplitude=0.5, sigma=0.5)
+
     for i in range(number_of_runs):
         print("\nIteration:", i + 1, "/", number_of_runs)
         start = datetime.datetime.now()
         de = DifferentialEvolution(num_iterations=500, dim=50, CR=0.4, F=0.48, population_size=75, print_status=False, func='rastrigin')
+        de.noise = noise
         val += de.simulate()
         print("\nTime taken:", datetime.datetime.now() - start)
 
