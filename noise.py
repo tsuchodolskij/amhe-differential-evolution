@@ -53,3 +53,16 @@ class WhiteNoise(Noise):
 
     def _function(self, point) -> float:
         return self.noise.random()
+
+
+class GaussianNoise(Noise):
+    def __init__(self, amplitude=1.0, sigma=1.0):
+        super().__init__(amplitude)
+        self.noise = random
+        self.sigma = sigma
+
+    def set_seed(self, seed: int) -> None:
+        self.noise.seed(seed)
+
+    def _function(self, point) -> float:
+        return self.noise.gauss(0.0, self.sigma)
