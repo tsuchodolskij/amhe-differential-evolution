@@ -1,9 +1,12 @@
 import copy
 import random
+import numpy
+import time
 
 from noise import Noise, NoNoise
 from population import Population
 from objectives import Function
+from matplotlib import pyplot as plt
 
 
 class DifferentialEvolution(object):
@@ -18,6 +21,10 @@ class DifferentialEvolution(object):
         self.func = Function(func=func)
         self.noise = noise if isinstance(noise, Noise) else NoNoise()
         self.population = Population(dim=dim, num_points=self.population_size, objective=self.func)
+        self.best_points = []
+        self.worst_points = []
+        self.avg_points = []
+        self.variance = []
 
     def iterate(self):
         for ix in range(self.population.num_points):
@@ -26,13 +33,12 @@ class DifferentialEvolution(object):
             while x == a or x == b or x == c:
                 [a, b, c] = random.sample(self.population.points, 3)
 
-            R = random.random() * x.dim
             y = copy.deepcopy(x)
 
             for iy in range(x.dim):
                 ri = random.random()
 
-                if ri < self.CR or iy == R:
+                if ri < self.CR:
                     y.coords[iy] = a.coords[iy] + self.F * (b.coords[iy] - c.coords[iy])
 
             noise_value = self.noise.evaluate(y.coords)
@@ -42,18 +48,27 @@ class DifferentialEvolution(object):
         self.iteration += 1
 
     def simulate(self):
-        pnt = self.get_best_point(self.population.points)
-        print("Initial best value: " + str(pnt.z))
         while self.iteration < self.num_iterations:
             if self.print_status is True and self.iteration % 50 == 0:
-                pnt = self.get_best_point(self.population.points)
+                pnt = self.population.get_best_point()
                 print(pnt.z, self.population.get_average_objective())
             self.iterate()
+            self.best_points.append(self.population.get_best_point().z)
+            self.worst_points.append(self.population.get_worst_point().z)
+            self.avg_points.append(self.population.get_average_objective())
+            self.variance.append(numpy.var(list(map(lambda x: x.z, self.population.points))))
 
-        pnt = self.get_best_point(self.population.points)
-        print("Final best value: " + str(pnt.z))
+        self.draw_plots()
+        pnt = self.population.get_best_point()
+
         return pnt.z
 
-    def get_best_point(self, points):
-        best = sorted(points, key=lambda x: x.z)[0]
-        return best
+    def draw_plots(self):
+        plt.plot(self.best_points, list(range(0, len(self.best_points))))
+        plt.plot(self.worst_points, list(range(0, len(self.worst_points))))
+        plt.plot(self.avg_points, list(range(0, len(self.avg_points))))
+        plt.savefig('out/_' + str(time.time()).replace(".", "_"))
+        plt.clf()
+        plt.plot(self.variance, list(range(0, len(self.variance))))
+        plt.savefig('out/var_' + str(time.time()).replace(".", "_"))
+        plt.clf()
