@@ -58,7 +58,7 @@ class DifferentialEvolution(object):
             self.avg_points.append(self.population.get_average_objective())
             self.variance.append(numpy.var(list(map(lambda x: x.z, self.population.points))))
 
-        self.draw_plots()
+        #self.draw_plots()
         pnt = self.population.get_best_point()
 
         return pnt.z
