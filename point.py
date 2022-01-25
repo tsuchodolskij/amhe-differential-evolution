@@ -6,6 +6,7 @@ class Point:
         self.dim = dim
         self.coords = np.zeros((self.dim,))
         self.z = None
+        self.z_noised = None
         self.range_upper_limit = upper_limit
         self.range_lower_limit = lower_limit
         self.objective = objective
@@ -17,4 +18,5 @@ class Point:
 
     def evaluate_point(self, noise_value=0.0):
         # self.z = evaluate(self.coords)
-        self.z = self.objective.evaluate(self.coords) + noise_value
+        self.z = self.objective.evaluate(self.coords)
+        self.z_noised = self.z + noise_value

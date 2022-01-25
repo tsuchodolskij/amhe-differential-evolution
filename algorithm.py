@@ -43,7 +43,7 @@ class DifferentialEvolution(object):
 
             noise_value = self.noise.evaluate(y.coords)
             y.evaluate_point(noise_value)
-            if y.z < x.z:
+            if y.z_noised < x.z_noised:
                 self.population.points[ix] = y
         self.iteration += 1
 
