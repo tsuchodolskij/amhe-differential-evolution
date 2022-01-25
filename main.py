@@ -1,12 +1,15 @@
 import datetime
 import os
 import shutil
+from copy import deepcopy
 
 from algorithm import DifferentialEvolution
 from noise import GaussianNoise
-from noise import NoNoise
 from noise import WhiteNoise
 from matplotlib import pyplot as plt
+
+from objectives import Function
+from population import Population
 
 
 def clear_out_dir():
@@ -21,26 +24,38 @@ def clear_out_dir():
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
-def draw_plots(data, function_name, amps):
-    plt.plot(list(range(0, len(data.best_points))), data.best_points)
-    plt.title("Szum Biały, porównanie punktów najlepszych")
+def draw_plots(function_name, amps, best, avg, var, dims, n):
+    splice1 = len(best[amps[0]])
+    plt.plot(list(range(0, splice1)), best[amps[0]][:splice1])
+    plt.plot(list(range(0, splice1)), best[amps[1]][:splice1])
+    plt.plot(list(range(0, splice1)), best[amps[2]][:splice1])
+    plt.plot(list(range(0, splice1)), best[amps[3]][:splice1])
+    plt.title("Funkcja Rosenbrocka, szum biały, \nporównanie punktów najlepszych, " + str(dims) + " dim")
     plt.legend(["Ampl. " + str(amps[0]), "Ampl. " + str(amps[1]),
-                "Ampl. " + str(amps[2]), "No noise"])
-    plt.savefig('out/' + function_name + '_gauss_best')
+                "Ampl. " + str(amps[2]), "Brak szumu"])
+    plt.savefig('out/' + function_name + '_' + str(dims) + 'dims_' + n + '_best')
     plt.clf()
 
-    plt.plot(list(range(0, len(data.avg_points))), data.avg_points)
-    plt.title("Szum Biały, porównanie średniej wartości punktów")
+    splice2 = len(avg[amps[0]])
+    plt.plot(list(range(0, splice2)), avg[amps[0]][:splice2])
+    plt.plot(list(range(0, splice2)), avg[amps[1]][:splice2])
+    plt.plot(list(range(0, splice2)), avg[amps[2]][:splice2])
+    plt.plot(list(range(0, splice2)), avg[amps[3]][:splice2])
+    plt.title("Funkcja Rosenbrocka, szum biały, \nporównanie średniej wartości punktów, " + str(dims) + " dim")
     plt.legend(["Ampl. " + str(amps[0]), "Ampl. " + str(amps[1]),
-                "Ampl. " + str(amps[2]), "No noise"])
-    plt.savefig('out/' + function_name + '_gauss_avg')
+                "Ampl. " + str(amps[2]), "Brak szumu"])
+    plt.savefig('out/' + function_name + '_' + str(dims) + 'dims_' + n + '_avg')
     plt.clf()
 
-    plt.plot(list(range(0, len(data.variance))), data.variance)
-    plt.title("Szum Biały, porównanie wariancji")
+    splice = len(var[amps[0]])
+    plt.plot(list(range(0, splice)), var[amps[0]][:splice])
+    plt.plot(list(range(0, splice)), var[amps[1]][:splice])
+    plt.plot(list(range(0, splice)), var[amps[2]][:splice])
+    plt.plot(list(range(0, splice)), var[amps[3]][:splice])
+    plt.title("Funkcja Rosenbrocka, szum biały, \nporównanie wariancji, " + str(dims) + " dim")
     plt.legend(["Ampl. " + str(amps[0]), "Ampl. " + str(amps[1]),
-                "Ampl. " + str(amps[2]), "No noise"])
-    plt.savefig('out/' + function_name + '_gauss_var')
+                "Ampl. " + str(amps[2]), "Brak szumu"])
+    plt.savefig('out/' + function_name + '_' + str(dims) + 'dims_' + n + '_var')
     plt.clf()
 
 
@@ -50,13 +65,27 @@ if __name__ == '__main__':
     clear_out_dir()
 
     amplitudes = [1, 10, 50, 0]
-    func_name = 'rastrigin'
+    all_best_points = {amplitudes[0]: [], amplitudes[1]: [], amplitudes[2]: [], amplitudes[3]: []}
+    all_avg_points = {amplitudes[0]: [], amplitudes[1]: [], amplitudes[2]: [], amplitudes[3]: []}
+    all_variances = {amplitudes[0]: [], amplitudes[1]: [], amplitudes[2]: [], amplitudes[3]: []}
+
+    pop_size = 100
+    dim_size = 10
+    func_name = 'rosenbrock'
+    noise_name = 'white'
+    population = Population(dim=dim_size, num_points=pop_size, objective=Function(func=func_name))
 
     for i in range(number_of_runs):
         print("\nIteration:", i + 1, "/", number_of_runs)
         start = datetime.datetime.now()
-        de = DifferentialEvolution(num_iterations=150, dim=5, CR=0.4, F=0.48, population_size=40, print_status=False, func=func_name)
+        de = DifferentialEvolution(num_iterations=40, CR=0.4, F=0.48, population_size=pop_size, print_status=False)
+        de.population = deepcopy(population)
         noise = WhiteNoise(amplitude=amplitudes[i])
+        # noise = GaussianNoise(amplitude=amplitudes[i])
         de.noise = noise
         val += de.simulate()
-        draw_plots(de, func_name, amplitudes)
+        all_best_points[amplitudes[i]] = de.best_points
+        all_avg_points[amplitudes[i]] = de.avg_points
+        all_variances[amplitudes[i]] = de.variance
+
+    draw_plots(func_name, amplitudes, all_best_points, all_avg_points, all_variances, dim_size, noise_name)
